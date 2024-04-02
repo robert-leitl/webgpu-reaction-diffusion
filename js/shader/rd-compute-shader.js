@@ -62,7 +62,6 @@ fn compute_main(
       // for the convolution of the kernel within the dispatch (work) area
       var sample: vec2u = dispatchOffset + local - kernelOffset;
       
-      // perform manual bilinear sampling of the input texture
       let input: vec4f = textureLoad(inputTex, sample, 0);
       var value: vec4f = vec4f(input.rg, vec2f(0.));
       
@@ -101,18 +100,23 @@ fn compute_main(
         let ks: i32 = i32(kernelSize);
         for (var x = 0; x < ks; x++) {
           for (var y = 0; y < ks; y++) {
-            let i = vec2i(local) + vec2(x, y) - vec2i(kernelOffset);
+            var i = vec2i(local) + vec2(x, y) - vec2i(kernelOffset);
+            i.x = clamp(i.x, 0, i32(dims.x));
+            i.y = clamp(i.y, 0, i32(dims.y));
             lap += cache[i.y][i.x].xy * laplacian[y * ks + x];
           }
         }
+        
+        let st = uv * 2. - 1.;
+        let dist = dot(st, st);
 
         // reaction diffusion calculation
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
-        let dA = .5;
-        let dB = .2;
-        let feed = 0.063;
-        let kill = 0.062;
+        let dA = 1.;
+        let dB = .4;
+        let feed = 0.066 * max(0.3, (1. - dist * .7));
+        let kill = 0.061;
         // calculate result
         let A = rd0.x;
         let B = rd0.y;

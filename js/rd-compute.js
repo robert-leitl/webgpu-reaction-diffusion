@@ -37,6 +37,16 @@ export class ReactionDiffusionCompute {
             ...pipelineDescriptor
         });
 
+        this.inputCanvas = document.createElement('canvas');
+        this.inputCanvas.width = viewportSize[0] * this.SCALE;
+        this.inputCanvas.height = viewportSize[1] * this.SCALE;
+        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 4;
+        this.inputContext = this.inputCanvas.getContext("2d");
+        this.inputContext.font = `${this.fontSize}px sans-serif`;
+        document.body.appendChild(this.inputCanvas);
+
+        this.drawTime();
+
         this.init(viewportSize[0] * this.SCALE, viewportSize[1] * this.SCALE);
     }
 
@@ -83,7 +93,14 @@ export class ReactionDiffusionCompute {
             }
             data = new Float16Array(rgba);
 
-            this.device.queue.writeTexture({ texture }, data.buffer, { bytesPerRow: width * 8 }, { width, height });
+            if (ndx === 0) {
+                const imgData = this.inputContext.getImageData(0, 0, width, height);
+                const imgNormRGBA = Array.from(imgData.data).map(v => v / 255);
+                data = new Float16Array(imgNormRGBA);
+                this.device.queue.writeTexture({ texture }, data.buffer, { bytesPerRow: width * 8 }, { width, height });
+            } else {
+                this.device.queue.writeTexture({ texture }, data.buffer, { bytesPerRow: width * 8 }, { width, height });
+            }
 
             return texture;
         });
@@ -92,6 +109,19 @@ export class ReactionDiffusionCompute {
             Math.ceil(width / ReactionDiffusionShaderDispatchSize[0]),
             Math.ceil(height / ReactionDiffusionShaderDispatchSize[1])
         ];
+    }
+
+    drawTime() {
+        this.inputContext.translate(0, 0);
+        this.inputContext.scale(1, 1);
+        this.inputContext.rect(0, 0, this.inputCanvas.width, this.inputCanvas.height);
+        this.inputContext.fillStyle = '#f00';
+        this.inputContext.fill();
+        this.inputContext.translate(this.inputCanvas.width / 2, this.inputCanvas.height / 2);
+        this.inputContext.scale(1, -1);
+        this.inputContext.fillStyle = '#0f0';
+        const now = new Date();
+        this.inputContext.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2, + this.fontSize * .25);
     }
 
     createBindGroups() {
