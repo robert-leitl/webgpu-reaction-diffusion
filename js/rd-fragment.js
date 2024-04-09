@@ -4,9 +4,9 @@ import { ReactionDiffusionFragmentShader } from './shader/rd-fragment-shader.js'
 
 export class ReactionDiffusionFragment {
 
-    static ITERATIONS = 15;
+    static ITERATIONS = 10;
 
-    SCALE = .5;
+    SCALE = .25;
 
     constructor(device, viewportSize) {
         this.device = device;

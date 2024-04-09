@@ -4,12 +4,14 @@ import { ReactionDiffusionComputeShader, ReactionDiffusionShaderDispatchSize } f
 
 export class ReactionDiffusionCompute {
 
-    ITERATIONS = 15;
+    ITERATIONS = 10;
 
-    SCALE = .5;
+    SCALE = .25;
 
     constructor(device, viewportSize) {
         this.device = device;
+        this.width = Math.round(viewportSize[0] * this.SCALE);
+        this.height = Math.round(viewportSize[1] * this.SCALE);
 
         // create pipeline and bind group layouts
         const module = this.device.createShaderModule({ code: ReactionDiffusionComputeShader });
@@ -38,16 +40,14 @@ export class ReactionDiffusionCompute {
         });
 
         this.inputCanvas = document.createElement('canvas');
-        this.inputCanvas.width = viewportSize[0] * this.SCALE;
-        this.inputCanvas.height = viewportSize[1] * this.SCALE;
-        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 4;
-        this.inputContext = this.inputCanvas.getContext("2d");
+        this.inputCanvas.width = this.width;
+        this.inputCanvas.height = this.height;
+        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3;
+        this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
         this.inputContext.font = `${this.fontSize}px sans-serif`;
         document.body.appendChild(this.inputCanvas);
 
-        this.drawTime();
-
-        this.init(viewportSize[0] * this.SCALE, viewportSize[1] * this.SCALE);
+        this.init(this.width, this.height);
     }
 
     init(width, height) {
@@ -62,7 +62,16 @@ export class ReactionDiffusionCompute {
     createTextures(width, height) {
         if (this.swapTextures) {
             this.swapTextures.forEach(texture => texture.destroy());
+            this.seedTexture.destroy();
         }
+
+        this.seedTexture = this.device.createTexture({
+            size: { width, height },
+            format: 'rgba8unorm',
+            usage:
+                GPUTextureUsage.COPY_DST |
+                GPUTextureUsage.TEXTURE_BINDING
+        });
 
         this.swapTextures = new Array(2).fill(null).map((v, ndx) => {
             const texture = this.device.createTexture({
@@ -79,7 +88,7 @@ export class ReactionDiffusionCompute {
             const h = height;
             let data;
             const rgba = new Array(w * h * 4).fill(0);
-            const s = 20;
+            const s = 10;
             const bx = [w / 2 - s, w / 2 + s];
             const by = [h / 2 - s, h / 2 + s];
             for(let x=0; x<w; x++) {
@@ -94,6 +103,7 @@ export class ReactionDiffusionCompute {
             data = new Float16Array(rgba);
 
             if (ndx === 0) {
+                this.drawTime(false, true);
                 const imgData = this.inputContext.getImageData(0, 0, width, height);
                 const imgNormRGBA = Array.from(imgData.data).map(v => v / 255);
                 data = new Float16Array(imgNormRGBA);
@@ -111,17 +121,40 @@ export class ReactionDiffusionCompute {
         ];
     }
 
-    drawTime() {
-        this.inputContext.translate(0, 0);
-        this.inputContext.scale(1, 1);
-        this.inputContext.rect(0, 0, this.inputCanvas.width, this.inputCanvas.height);
-        this.inputContext.fillStyle = '#f00';
-        this.inputContext.fill();
-        this.inputContext.translate(this.inputCanvas.width / 2, this.inputCanvas.height / 2);
-        this.inputContext.scale(1, -1);
-        this.inputContext.fillStyle = '#0f0';
+    drawTime(clear, init = false) {
+        if (clear) {
+            const seedData = new Uint8Array(new Array(this.width * this.height * 4).fill(0));
+            this.device.queue.writeTexture({ texture: this.seedTexture }, seedData.buffer, { bytesPerRow: this.width * 4 }, { width: this.width, height: this.height });
+            return;
+        }
+
+
+        const ctx = this.inputContext;
+        ctx.resetTransform();
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        ctx.scale(1, 1);
+        ctx.rect(0, 0, this.width, this.height);
+        ctx.fillStyle = init ? '#0f0' : 'rgba(0, 0, 0, 0)';
+        ctx.fill();
+
+        ctx.lineWidth = 100;
+        ctx.strokeStyle = init ? '#0f0' : 'rgba(0, 0, 0, 0)';
+        ctx.rect(0, 0, this.width, this.height);
+        ctx.stroke();
+        ctx.translate(0, 0);
+
+        ctx.translate(this.width / 2, this.height / 2);
+        ctx.scale(1, -1);
+        ctx.fillStyle = '#f00';
         const now = new Date();
-        this.inputContext.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2, + this.fontSize * .25);
+        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2, + this.fontSize * .25);
+        this.lastTime = now;
+
+
+        const imgData = this.inputContext.getImageData(0, 0, this.width, this.height);
+        const seedData = new Uint8Array(Array.from(imgData.data));
+        this.device.queue.writeTexture({ texture: this.seedTexture }, seedData.buffer, { bytesPerRow: this.width * 4 }, { width: this.width, height: this.height });
     }
 
     createBindGroups() {
@@ -131,6 +164,7 @@ export class ReactionDiffusionCompute {
                 entries: [
                     { binding: 0, resource: this.swapTextures[0].createView() },
                     { binding: 1, resource: this.swapTextures[1].createView() },
+                    { binding: 2, resource: this.seedTexture.createView() },
                 ]
             }),
             this.device.createBindGroup({
@@ -138,6 +172,7 @@ export class ReactionDiffusionCompute {
                 entries: [
                     { binding: 0, resource: this.swapTextures[1].createView() },
                     { binding: 1, resource: this.swapTextures[0].createView() },
+                    { binding: 2, resource: this.seedTexture.createView() },
                 ]
             })
         ];
@@ -145,6 +180,10 @@ export class ReactionDiffusionCompute {
 
     compute(computePassEncoder) {
         computePassEncoder.setPipeline(this.pipeline);
+
+        if (!this.lastTime || this.lastTime.getSeconds() !== new Date().getSeconds()) {
+            this.drawTime();
+        }
 
         for(let i = 0; i < this.ITERATIONS; i++) {
             computePassEncoder.setBindGroup(0, this.swapBindGroups[0]);

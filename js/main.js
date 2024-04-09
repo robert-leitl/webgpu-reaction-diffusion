@@ -55,6 +55,8 @@ const run = t => {
 
     timingHelper.getResult().then(gpuTime => rdTime.addSample(gpuTime / 1000));
 
+    console.log(rdTime.value)
+
     requestAnimationFrame(t => run(t));
 }
 

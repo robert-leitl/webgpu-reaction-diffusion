@@ -25,6 +25,19 @@ const tileSize = vec2u(${tileSize[0]},${tileSize[1]});
 
 @group(0) @binding(0) var inputTex: texture_2d<f32>;
 @group(0) @binding(1) var outputTex: texture_storage_2d<rgba16float, write>;
+@group(0) @binding(2) var seedTex: texture_2d<f32>;
+
+fn texture2D_bilinear(t: texture_2d<f32>, coord: vec2f, dims: vec2u) -> vec4f {
+    let sample: vec2u = vec2u(coord);
+    let tl: vec4f = textureLoad(t, clamp(sample, vec2u(1, 1), dims), 0);
+    let tr: vec4f = textureLoad(t, clamp(sample + vec2u(1, 0), vec2u(1, 1), dims), 0);
+    let bl: vec4f = textureLoad(t, clamp(sample + vec2u(0, 1), vec2u(1, 1), dims), 0);
+    let br: vec4f = textureLoad(t, clamp(sample + vec2u(1, 1), vec2u(1, 1), dims), 0);
+    let f: vec2f = fract(coord);
+    let tA: vec4f = mix(tl, tr, f.x);
+    let tB: vec4f = mix(bl, br, f.x);
+    return mix(tA, tB, f.y);
+}
 
 // the cache for the texture lookups (tileSize * workgroupSize)
 var<workgroup> cache: array<array<vec4f, ${cacheSize[0]}>, ${cacheSize[1]}>;
@@ -62,8 +75,21 @@ fn compute_main(
       // for the convolution of the kernel within the dispatch (work) area
       var sample: vec2u = dispatchOffset + local - kernelOffset;
       
-      let input: vec4f = textureLoad(inputTex, sample, 0);
+      sample.x = clamp(sample.x, 1, u32(dims.x));
+      sample.y = clamp(sample.y, 1, u32(dims.y));
+      
+      var sampleCoord: vec2f = vec2f(sample);
+      var sampleUv: vec2f = sampleCoord / vec2f(dims);
+      sampleCoord -= (sampleUv * 2. - 1.) * 0.02;
+      
+      // perform manual bilinear sampling of the input texture
+      let input: vec4f = texture2D_bilinear(inputTex, sampleCoord, dims);
+      
+      //let input: vec4f = textureLoad(inputTex, sample, 0);
       var value: vec4f = vec4f(input.rg, vec2f(0.));
+      let seed: vec4f = textureLoad(seedTex, sample, 0);
+      
+      value.b = seed.r;
       
       cache[local.y][local.x] = value;
     }
@@ -71,7 +97,7 @@ fn compute_main(
 
   workgroupBarrier();
 
-  // global pixel bounds within an application of the kernel is valid
+  // global pixel bounds within the application of the kernel is valid
   let bounds: vec4u = vec4u(
     dispatchOffset,
     min(dims, dispatchOffset + dispatchSize)
@@ -101,22 +127,20 @@ fn compute_main(
         for (var x = 0; x < ks; x++) {
           for (var y = 0; y < ks; y++) {
             var i = vec2i(local) + vec2(x, y) - vec2i(kernelOffset);
-            i.x = clamp(i.x, 0, i32(dims.x));
-            i.y = clamp(i.y, 0, i32(dims.y));
             lap += cache[i.y][i.x].xy * laplacian[y * ks + x];
           }
         }
         
         let st = uv * 2. - 1.;
-        let dist = dot(st, st);
+        let dist = dot(st.yy, st.yy);
 
         // reaction diffusion calculation
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
-        let dA = 1.;
-        let dB = .4;
-        let feed = 0.066 * max(0.3, (1. - dist * .7));
-        let kill = 0.061;
+        let dA = 1. - dist * .1;
+        let dB = .3 + dist * 0.1;
+        let feed = 0.066;// * max(0.3, (1. - dist * .7));
+        let kill = 0.061 + cacheValue.b * .05;
         // calculate result
         let A = rd0.x;
         let B = rd0.y;
