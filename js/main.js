@@ -19,6 +19,7 @@ const viewportSize = [
 ];
 canvas.width = viewportSize[0];
 canvas.height = viewportSize[1];
+let timeMS = 0;
 
 const useCompute = true;
 
@@ -30,11 +31,13 @@ const composite = new Composite(device, reactionDiffusion);
 
 const run = t => {
 
+    timeMS += Math.min(32, t);
+
     const commandEncoder = device.createCommandEncoder();
 
     if (useCompute) {
         const computePassEncoder = timingHelper.beginComputePass(commandEncoder);
-        reactionDiffusion.compute(computePassEncoder);
+        reactionDiffusion.compute(computePassEncoder, timeMS);
         computePassEncoder.end();
     } else {
         reactionDiffusion.render(commandEncoder, timingHelper);

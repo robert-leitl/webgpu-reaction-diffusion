@@ -23,9 +23,16 @@ const kernelSize = ${kernelSize};
 const dispatchSize = vec2u(${dispatchSize[0]},${dispatchSize[1]});
 const tileSize = vec2u(${tileSize[0]},${tileSize[1]});
 
+struct AnimationUniforms {
+   pulse: f32,
+   pointerVelocity: vec2f,
+   pointerPos: vec2f
+};
+
 @group(0) @binding(0) var inputTex: texture_2d<f32>;
 @group(0) @binding(1) var outputTex: texture_storage_2d<rgba16float, write>;
 @group(0) @binding(2) var seedTex: texture_2d<f32>;
+@group(0) @binding(3) var<uniform> animationUniforms: AnimationUniforms;
 
 fn texture2D_bilinear(t: texture_2d<f32>, coord: vec2f, dims: vec2u) -> vec4f {
     let sample: vec2u = vec2u(coord);
@@ -80,7 +87,9 @@ fn compute_main(
       
       var sampleCoord: vec2f = vec2f(sample);
       var sampleUv: vec2f = sampleCoord / vec2f(dims);
-      sampleCoord -= (sampleUv * 2. - 1.) * 0.01;
+      sampleCoord -= (sampleUv * 2. - 1.) * 0.01 * (2. * animationUniforms.pulse + 2. + 1.5);
+      let pointerMask = 1. - min(1., (distance((sampleUv * 2. - 1.), animationUniforms.pointerPos)));
+      sampleCoord -= animationUniforms.pointerVelocity * 1.5 * pointerMask;
       
       // perform manual bilinear sampling of the input texture
       let input: vec4f = texture2D_bilinear(inputTex, sampleCoord, dims);
@@ -138,9 +147,9 @@ fn compute_main(
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
         let dA = 1. - dist * .1;
-        let dB = .25 + dist * 0.1;
+        let dB = .25 + dist * 0.1 + 0.1 * (animationUniforms.pulse * .5 + .5);
         let feed = 0.065;// * max(0.3, (1. - dist * .7));
-        let kill = 0.06 + cacheValue.b * .05;
+        let kill = 0.06 + cacheValue.b * .05 * (animationUniforms.pulse * .3 + .7);
         // calculate result
         let A = rd0.x;
         let B = rd0.y;

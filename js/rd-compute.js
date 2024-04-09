@@ -8,7 +8,8 @@ export class ReactionDiffusionCompute {
 
     SCALE = .25;
 
-    frameCount = 0;
+    pointer = {x: 0, y: 0};
+    pointerFollower = {x: 0, y: 0, vx: 0, vy: 0}
 
     constructor(device, viewportSize) {
         this.device = device;
@@ -32,6 +33,16 @@ export class ReactionDiffusionCompute {
         });
         this.bindGroupLayout = this.device.createBindGroupLayout(descriptors[0]);
 
+        const animationUniformView = wgh.makeStructuredView(defs.uniforms.animationUniforms);
+        this.animationUniform = {
+            view: animationUniformView,
+            buffer: this.device.createBuffer({
+                size: animationUniformView.arrayBuffer.byteLength,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            })
+        };
+        this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
+
         const pipelineLayout = this.device.createPipelineLayout({
             bindGroupLayouts: [this.bindGroupLayout]
         });
@@ -44,11 +55,17 @@ export class ReactionDiffusionCompute {
         this.inputCanvas = document.createElement('canvas');
         this.inputCanvas.width = this.width;
         this.inputCanvas.height = this.height;
-        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 2;
+        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3;
         this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
+        //this.inputContext.font = `${this.fontSize}px "Jacquarda Bastarda 9"`;
+        //this.inputContext.font = `${this.fontSize}px "Foldit"`;
+        this.inputContext.font = `${this.fontSize}px "Syne Mono"`;
 
-        this.inputContext.font = `${this.fontSize}px "Jacquarda Bastarda 9"`;
-        document.body.appendChild(this.inputCanvas);
+        document.body.addEventListener('pointermove', e => {
+            this.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+            this.pointer.y = (1 - e.clientY / window.innerHeight) * 2 - 1;
+
+        })
 
         this.init(this.width, this.height);
     }
@@ -151,7 +168,8 @@ export class ReactionDiffusionCompute {
         ctx.scale(1, -1);
         ctx.fillStyle = '#f00';
         const now = new Date();
-        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 1.55, + this.fontSize * .25);
+        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2.3, + this.fontSize * .25);
+        //ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}`, - this.fontSize * 1.55, + this.fontSize * .25);
         this.lastTime = now;
 
 
@@ -168,6 +186,7 @@ export class ReactionDiffusionCompute {
                     { binding: 0, resource: this.swapTextures[0].createView() },
                     { binding: 1, resource: this.swapTextures[1].createView() },
                     { binding: 2, resource: this.seedTexture.createView() },
+                    { binding: 3, resource: { buffer: this.animationUniform.buffer }},
                 ]
             }),
             this.device.createBindGroup({
@@ -176,16 +195,32 @@ export class ReactionDiffusionCompute {
                     { binding: 0, resource: this.swapTextures[1].createView() },
                     { binding: 1, resource: this.swapTextures[0].createView() },
                     { binding: 2, resource: this.seedTexture.createView() },
+                    { binding: 3, resource: { buffer: this.animationUniform.buffer }},
                 ]
             })
         ];
     }
 
-    compute(computePassEncoder) {
+    compute(computePassEncoder, timeMS) {
+        const prevPointerFollower = {...this.pointerFollower};
+        this.pointerFollower.x += (this.pointer.x - this.pointerFollower.x) / 18;
+        this.pointerFollower.y += (this.pointer.y - this.pointerFollower.y) / 18;
+        this.pointerFollower.vx = (this.pointerFollower.x - prevPointerFollower.x);
+        this.pointerFollower.vy = (this.pointerFollower.y - prevPointerFollower.y);
+        this.animationUniform.view.set({ pointerVelocity: [ this.pointerFollower.vx, this.pointerFollower.vy ] });
+        this.animationUniform.view.set({ pointerPos: [ this.pointerFollower.x, this.pointerFollower.y ] });
+
+
+        const dateTimeMS = new Date().getTime() + 250;
+        const pulse = Math.sin(2 * Math.PI * dateTimeMS * .001);
+        this.animationUniform.view.set({ pulse });
+        this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
+
         computePassEncoder.setPipeline(this.pipeline);
 
         if (!this.lastTime || this.lastTime.getSeconds() !== new Date().getSeconds()) {
             this.drawTime();
+            this.phase = new Date().getMilliseconds();
         }
 
         for(let i = 0; i < this.ITERATIONS; i++) {
@@ -195,7 +230,5 @@ export class ReactionDiffusionCompute {
             computePassEncoder.setBindGroup(0, this.swapBindGroups[1]);
             computePassEncoder.dispatchWorkgroups(this.dispatches[0], this.dispatches[1]);
         }
-
-        this.frameCount++;
     }
 }
