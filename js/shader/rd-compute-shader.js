@@ -80,7 +80,7 @@ fn compute_main(
       
       var sampleCoord: vec2f = vec2f(sample);
       var sampleUv: vec2f = sampleCoord / vec2f(dims);
-      sampleCoord -= (sampleUv * 2. - 1.) * 0.02;
+      sampleCoord -= (sampleUv * 2. - 1.) * 0.01;
       
       // perform manual bilinear sampling of the input texture
       let input: vec4f = texture2D_bilinear(inputTex, sampleCoord, dims);
@@ -138,9 +138,9 @@ fn compute_main(
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
         let dA = 1. - dist * .1;
-        let dB = .3 + dist * 0.1;
-        let feed = 0.066;// * max(0.3, (1. - dist * .7));
-        let kill = 0.061 + cacheValue.b * .05;
+        let dB = .25 + dist * 0.1;
+        let feed = 0.065;// * max(0.3, (1. - dist * .7));
+        let kill = 0.06 + cacheValue.b * .05;
         // calculate result
         let A = rd0.x;
         let B = rd0.y;

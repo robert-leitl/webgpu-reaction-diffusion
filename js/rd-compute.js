@@ -4,9 +4,11 @@ import { ReactionDiffusionComputeShader, ReactionDiffusionShaderDispatchSize } f
 
 export class ReactionDiffusionCompute {
 
-    ITERATIONS = 10;
+    ITERATIONS = 20;
 
     SCALE = .25;
+
+    frameCount = 0;
 
     constructor(device, viewportSize) {
         this.device = device;
@@ -42,9 +44,10 @@ export class ReactionDiffusionCompute {
         this.inputCanvas = document.createElement('canvas');
         this.inputCanvas.width = this.width;
         this.inputCanvas.height = this.height;
-        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3;
+        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 2;
         this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
-        this.inputContext.font = `${this.fontSize}px sans-serif`;
+
+        this.inputContext.font = `${this.fontSize}px "Jacquarda Bastarda 9"`;
         document.body.appendChild(this.inputCanvas);
 
         this.init(this.width, this.height);
@@ -148,7 +151,7 @@ export class ReactionDiffusionCompute {
         ctx.scale(1, -1);
         ctx.fillStyle = '#f00';
         const now = new Date();
-        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2, + this.fontSize * .25);
+        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 1.55, + this.fontSize * .25);
         this.lastTime = now;
 
 
@@ -192,5 +195,7 @@ export class ReactionDiffusionCompute {
             computePassEncoder.setBindGroup(0, this.swapBindGroups[1]);
             computePassEncoder.dispatchWorkgroups(this.dispatches[0], this.dispatches[1]);
         }
+
+        this.frameCount++;
     }
 }
