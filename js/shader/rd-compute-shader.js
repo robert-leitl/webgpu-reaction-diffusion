@@ -141,12 +141,12 @@ fn compute_main(
         }
         
         let st = uv * 2. - 1.;
-        let dist = dot(st.yy, st.yy);
+        let dist = mix(dot(st.xx, st.xx), dot(st.yy, st.yy), step(1., f32(dims.x) / f32(dims.y)));
 
         // reaction diffusion calculation
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
-        let dA = 1. - dist * .1;
+        let dA = 1. - dist * .15;
         let dB = .25 + dist * 0.1 + 0.1 * (animationUniforms.pulse * .5 + .5);
         let feed = 0.065;// * max(0.3, (1. - dist * .7));
         let kill = 0.06 + cacheValue.b * .05 * (animationUniforms.pulse * .3 + .7);

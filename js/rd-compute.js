@@ -15,6 +15,7 @@ export class ReactionDiffusionCompute {
         this.device = device;
         this.width = Math.round(viewportSize[0] * this.SCALE);
         this.height = Math.round(viewportSize[1] * this.SCALE);
+        this.aspect = this.width / this.height;
 
         // create pipeline and bind group layouts
         const module = this.device.createShaderModule({ code: ReactionDiffusionComputeShader });
@@ -55,7 +56,7 @@ export class ReactionDiffusionCompute {
         this.inputCanvas = document.createElement('canvas');
         this.inputCanvas.width = this.width;
         this.inputCanvas.height = this.height;
-        this.fontSize = Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3;
+        this.fontSize = Math.max(50, Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3);
         this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
         //this.inputContext.font = `${this.fontSize}px "Jacquarda Bastarda 9"`;
         //this.inputContext.font = `${this.fontSize}px "Foldit"`;
@@ -168,7 +169,26 @@ export class ReactionDiffusionCompute {
         ctx.scale(1, -1);
         ctx.fillStyle = '#f00';
         const now = new Date();
-        ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`, - this.fontSize * 2.3, + this.fontSize * .25);
+
+        if (this.aspect > 1) {
+            ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`,
+                - this.fontSize * 2.3,
+                + this.fontSize * .25);
+        } else {
+            const x = - this.fontSize * 0.63;
+            const y = - this.fontSize * .5;
+            const rowHeight = this.fontSize * .8;
+            ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}`,
+                x,
+                y);
+            ctx.fillText(`${now.getMinutes().toString(10).padStart(2, '0')}`,
+                x,
+                y + rowHeight);
+            ctx.fillText(`${now.getSeconds().toString(10).padStart(2, '0')}`,
+                x,
+                y + rowHeight * 2);
+        }
+
         //ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}`, - this.fontSize * 1.55, + this.fontSize * .25);
         this.lastTime = now;
 

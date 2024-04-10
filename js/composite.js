@@ -28,6 +28,16 @@ export class Composite {
         const descriptors = wgh.makeBindGroupLayoutDescriptors(defs, pipelineLayout);
         const bindGroupLayout = device.createBindGroupLayout(descriptors[0]);
 
+        const animationUniformView = wgh.makeStructuredView(defs.uniforms.animationUniforms);
+        this.animationUniform = {
+            view: animationUniformView,
+            buffer: this.device.createBuffer({
+                size: animationUniformView.arrayBuffer.byteLength,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            })
+        };
+        this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
+
         this.sampler = device.createSampler({
             minFilter: 'linear',
             magFilter: 'linear'
@@ -46,6 +56,11 @@ export class Composite {
     }
 
     render(renderPassEncoder) {
+        const dateTimeMS = new Date().getTime() + 250;
+        const pulse = Math.sin(2 * Math.PI * dateTimeMS * .001);
+        this.animationUniform.view.set({ pulse });
+        this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
+
         renderPassEncoder.setPipeline(this.pipeline);
         renderPassEncoder.setBindGroup(0, this.bindGroup);
         renderPassEncoder.draw(3);
@@ -55,8 +70,9 @@ export class Composite {
         this.bindGroup = this.device.createBindGroup({
             layout: this.bindGroupLayouts[0],
             entries: [
-                { binding: 0, resource: this.sampler },
-                { binding: 1, resource: this.reactionDiffusion.resultStorageTexture.createView() },
+                { binding: 0, resource: { buffer: this.animationUniform.buffer } },
+                { binding: 1, resource: this.sampler },
+                { binding: 2, resource: this.reactionDiffusion.resultStorageTexture.createView() },
             ]
         });
     }

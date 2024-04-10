@@ -13,9 +13,10 @@ const device = await adapter?.requestDevice({
 const context = canvas.getContext('webgpu');
 const format = navigator.gpu.getPreferredCanvasFormat();
 context.configure({ device, format, alphaMode: 'premultiplied' });
+const pixelRatio = Math.min(2, window.devicePixelRatio);
 const viewportSize = [
-    Math.max(1, Math.min(window.innerWidth, device.limits.maxTextureDimension2D)),
-    Math.max(1, Math.min(window.innerHeight, device.limits.maxTextureDimension2D))
+    Math.max(1, Math.min(pixelRatio * window.innerWidth, device.limits.maxTextureDimension2D)),
+    Math.max(1, Math.min(pixelRatio * window.innerHeight, device.limits.maxTextureDimension2D))
 ];
 canvas.width = viewportSize[0];
 canvas.height = viewportSize[1];
