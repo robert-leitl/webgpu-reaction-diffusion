@@ -1,8 +1,8 @@
-import {ReactionDiffusionCompute} from '/js/rd-compute.js';
-import {ReactionDiffusionFragment} from '/js/rd-fragment.js';
-import {Composite} from '/js/composite.js';
-import {TimingHelper} from '/js/utils/timing-helper.js';
-import {RollingAverage} from '/js/utils/rolling-average.js';
+import {ReactionDiffusionCompute} from './rd-compute.js';
+import {ReactionDiffusionFragment} from './rd-fragment.js';
+import {Composite} from './composite.js';
+import {TimingHelper} from './utils/timing-helper.js';
+import {RollingAverage} from './utils/rolling-average.js';
 
 const canvas = document.getElementById('viewport');
 const adapter = await navigator.gpu?.requestAdapter();

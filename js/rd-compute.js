@@ -1,5 +1,5 @@
-import * as wgh from '/js/libs/webgpu-utils.module.js';
-import { Float16Array } from '/js/libs/float16.js';
+import * as wgh from './libs/webgpu-utils.module.js';
+import { Float16Array } from './libs/float16.js';
 import { ReactionDiffusionComputeShader, ReactionDiffusionShaderDispatchSize } from './shader/rd-compute-shader.js';
 
 export class ReactionDiffusionCompute {
@@ -170,7 +170,7 @@ export class ReactionDiffusionCompute {
         ctx.fillStyle = '#f00';
         const now = new Date();
 
-        if (this.aspect > 1) {
+        if (this.aspect > 1.3) {
             ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`,
                 - this.fontSize * 2.3,
                 + this.fontSize * .25);

@@ -1,5 +1,5 @@
 import {CompositeShader} from './shader/composite-shader.js';
-import * as wgh from '/js/libs/webgpu-utils.module.js';
+import * as wgh from './libs/webgpu-utils.module.js';
 
 export class Composite {
 

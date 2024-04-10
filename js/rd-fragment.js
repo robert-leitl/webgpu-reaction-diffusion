@@ -1,5 +1,5 @@
-import * as wgh from '/js/libs/webgpu-utils.module.js';
-import { Float16Array } from '/js/libs/float16.js';
+import * as wgh from './libs/webgpu-utils.module.js';
+import { Float16Array } from './libs/float16.js';
 import { ReactionDiffusionFragmentShader } from './shader/rd-fragment-shader.js';
 
 export class ReactionDiffusionFragment {

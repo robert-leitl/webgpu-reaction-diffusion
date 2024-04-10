@@ -141,7 +141,7 @@ fn compute_main(
         }
         
         let st = uv * 2. - 1.;
-        let dist = mix(dot(st.xx, st.xx), dot(st.yy, st.yy), step(1., f32(dims.x) / f32(dims.y)));
+        let dist = mix(dot(st.xx, st.xx), dot(st.yy, st.yy), step(1.3, f32(dims.x) / f32(dims.y)));
 
         // reaction diffusion calculation
         let cacheValue: vec4f = cache[local.y][local.x];

@@ -47,24 +47,40 @@ fn frag_main(@location(0) uv : vec2f) -> @location(0) vec4f {
     let value = smoothstep(0.2, .8, input.g);
     
     var base: vec3f = pal(value * .4 + 0.4, vec3(.5,0.5,0.5),vec3(0.5,0.5,.5),vec3(1.,1.0,1.0),vec3(0.05,0.1,0.2));
-    base *= 1.2 * (animationUniforms.pulse * .3 + .7);
+    base *= 1.5 * (animationUniforms.pulse * .2 + .8);
+    
+    let st = uv * 2. - 1.;
+    let dist = length(st);
     
     // emboss effect
     let embossScale = .5;
     let tlColor: vec4f = textureSample(inputTex, inputTexSampler, uv + vec2(-inputTexelSize.x,  inputTexelSize.y) * embossScale);
     let brColor: vec4f = textureSample(inputTex, inputTexSampler, uv + vec2(inputTexelSize.x,  -inputTexelSize.y) * embossScale);
-    let c: f32 = smoothstep(0.0, 0.4, input.r);
-    let tl: f32 = smoothstep(0.0, 0.4, tlColor.r);
-    let br: f32 = smoothstep(0.0, 0.4, brColor.r);
-    var emboss: vec3f = vec3f(2.0 * tl - c - br);
+    let c: f32 = smoothstep(0., .4 + dist * .3, input.r);
+    let tl: f32 = smoothstep(0., .4 + dist * .3, tlColor.r);
+    let br: f32 = smoothstep(0., .4 + dist * .3, brColor.r);
+    var emboss: vec3f = vec3f(2.0 * br - c - tl);
     let luminance: f32 = clamp(0.299 * emboss.r + 0.587 * emboss.g + 0.114 * emboss.b, 0.0, 1.0);
-    emboss = vec3f(luminance) * 1.5 * (animationUniforms.pulse * .2 + .8);
-    var ext: vec3f = 1. - vec3f(br + c + tl) / 3.;
+    emboss = vec3f(luminance) * .3 * (animationUniforms.pulse * .2 + .8);
+    let specular = smoothstep(0.1, 0.3, 2.0 * tl - c - br) * .5 * (1. - dist) * (animationUniforms.pulse * .2 + .8);
     
-    let vignette = length(uv * 2. - 1.) * .05;
+    let embossScale2 = 2.;
+    let tlColor2: vec4f = textureSample(inputTex, inputTexSampler, uv + vec2(-inputTexelSize.x,  inputTexelSize.y) * embossScale2);
+    let brColor2: vec4f = textureSample(inputTex, inputTexSampler, uv + vec2(inputTexelSize.x,  -inputTexelSize.y) * embossScale2);
+    let c2: f32 = smoothstep(0.0, 1., input.g);
+    let tl2: f32 = smoothstep(0.0, 1., tlColor2.g);
+    let br2: f32 = smoothstep(0.0, 1., brColor2.g);
+    var emboss2: vec3f = vec3f(2.0 * br2 - c2 - tl2);
+    let luminance2: f32 = clamp(0.299 * emboss2.r + 0.587 * emboss2.g + 0.114 * emboss2.b, 0.0, 1.0);
+    var ext: vec3f = pal(luminance2 * 4., vec3(.5,0.5,0.5),vec3(0.5,0.5,.5),vec3(1.,1.0,1.0),vec3(0.0,0.33,0.67));
+    ext = mix(vec3f(0.), ext, smoothstep(0., .05, luminance2));
+    ext *= .08 * (animationUniforms.pulse * .2 + .8);
+    
+    let vignette = dist * .05;
     
     
-    var color: vec4f = vec4f(base + emboss + vignette, 1.);
+    //var color: vec4f = vec4f(base + emboss + vignette + ext, 1.);
+    var color: vec4f = vec4f(base + emboss - vignette + specular + ext, 1.);
     
     return color;
 }
