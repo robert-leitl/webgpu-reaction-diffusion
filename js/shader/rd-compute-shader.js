@@ -72,6 +72,8 @@ fn compute_main(
 
   // get texture dimensions
   let dims: vec2u = vec2<u32>(textureDimensions(inputTex, 0));
+  
+  let aspectFactor: vec2f = vec2f(dims) / f32(max(dims.x, dims.y));
 
   // add this threads tiles pixels to the cache
   for (var c=0u; c<tileSize.x; c++) {
@@ -88,8 +90,11 @@ fn compute_main(
       var sampleCoord: vec2f = vec2f(sample);
       var sampleUv: vec2f = sampleCoord / vec2f(dims);
       sampleCoord -= (sampleUv * 2. - 1.) * 0.01 * (2. * animationUniforms.pulse + 2. + 1.5);
-      let pointerMask = 1. - min(1., (distance((sampleUv * 2. - 1.), animationUniforms.pointerPos)));
-      sampleCoord -= animationUniforms.pointerVelocity * 1.5 * pointerMask;
+      
+      let st = ((sampleUv * 2. - 1.) * aspectFactor) * .5 + .5;
+      let pointerPos = (animationUniforms.pointerPos * aspectFactor) * .5 + .5;
+      var pointerMask = smoothstep(0.6, 1., 1. - min(1., (distance(st, pointerPos))));
+      sampleCoord -= animationUniforms.pointerVelocity * 2.5 * pointerMask;
       
       // perform manual bilinear sampling of the input texture
       let input: vec4f = texture2D_bilinear(inputTex, sampleCoord, dims);
@@ -129,6 +134,11 @@ fn compute_main(
       if (all(sample >= bounds.xy) && all(sample < bounds.zw)) {
       
         let uv: vec2f = vec2f(sample) / vec2f(dims);
+        
+        var st = ((uv * 2. - 1.) * aspectFactor) * .5 + .5;
+        let pointerPos = (animationUniforms.pointerPos * aspectFactor) * .5 + .5;
+        var pointerMask = smoothstep(0.6, 1., 1. - min(1., (distance(st, pointerPos))));
+        pointerMask = pointerMask * length(animationUniforms.pointerVelocity) * 30.;
 
         // convolution with laplacian kernel
         var lap = vec2f(0);
@@ -140,14 +150,15 @@ fn compute_main(
           }
         }
         
-        let st = uv * 2. - 1.;
+        st = (uv * 2. - 1.);
         let dist = mix(dot(st.xx, st.xx), dot(st.yy, st.yy), step(1.3, f32(dims.x) / f32(dims.y)));
 
         // reaction diffusion calculation
         let cacheValue: vec4f = cache[local.y][local.x];
         let rd0 = cacheValue.xy;
         let dA = 1. - dist * .15;
-        let dB = .25 + dist * 0.1 + 0.1 * (animationUniforms.pulse * .5 + .5);
+        var dB = .25 + dist * 0.1 + 0.1 * (animationUniforms.pulse * .5 + .5) - min(0.15, 0.2 * pointerMask);
+        dB = max(0.1, dB);
         let feed = 0.065;// * max(0.3, (1. - dist * .7));
         let kill = 0.06 + cacheValue.b * .05 * (animationUniforms.pulse * .3 + .7);
         // calculate result

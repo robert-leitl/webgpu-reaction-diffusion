@@ -34,11 +34,14 @@ const run = t => {
 
     timeMS += Math.min(32, t);
 
+    const dateTimeMS = new Date().getTime() + 800;
+    const pulse = Math.sin(2 * Math.PI * dateTimeMS * .001);
+
     const commandEncoder = device.createCommandEncoder();
 
     if (useCompute) {
         const computePassEncoder = timingHelper.beginComputePass(commandEncoder);
-        reactionDiffusion.compute(computePassEncoder, timeMS);
+        reactionDiffusion.compute(computePassEncoder, pulse);
         computePassEncoder.end();
     } else {
         reactionDiffusion.render(commandEncoder, timingHelper);
@@ -52,7 +55,7 @@ const run = t => {
             storeOp: 'store'
         }],
     });
-    composite.render(compositePassEncoder);
+    composite.render(compositePassEncoder, pulse);
     compositePassEncoder.end();
 
     device.queue.submit([commandEncoder.finish()]);

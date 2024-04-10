@@ -4,7 +4,7 @@ import { ReactionDiffusionComputeShader, ReactionDiffusionShaderDispatchSize } f
 
 export class ReactionDiffusionCompute {
 
-    ITERATIONS = 20;
+    ITERATIONS = 10;
 
     SCALE = .25;
 
@@ -221,7 +221,7 @@ export class ReactionDiffusionCompute {
         ];
     }
 
-    compute(computePassEncoder, timeMS) {
+    compute(computePassEncoder, pulse) {
         const prevPointerFollower = {...this.pointerFollower};
         this.pointerFollower.x += (this.pointer.x - this.pointerFollower.x) / 18;
         this.pointerFollower.y += (this.pointer.y - this.pointerFollower.y) / 18;
@@ -231,8 +231,6 @@ export class ReactionDiffusionCompute {
         this.animationUniform.view.set({ pointerPos: [ this.pointerFollower.x, this.pointerFollower.y ] });
 
 
-        const dateTimeMS = new Date().getTime() + 250;
-        const pulse = Math.sin(2 * Math.PI * dateTimeMS * .001);
         this.animationUniform.view.set({ pulse });
         this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
 

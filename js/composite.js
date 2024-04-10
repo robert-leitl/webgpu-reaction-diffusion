@@ -55,9 +55,7 @@ export class Composite {
         this.createBindGroups();
     }
 
-    render(renderPassEncoder) {
-        const dateTimeMS = new Date().getTime() + 250;
-        const pulse = Math.sin(2 * Math.PI * dateTimeMS * .001);
+    render(renderPassEncoder, pulse) {
         this.animationUniform.view.set({ pulse });
         this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
 
