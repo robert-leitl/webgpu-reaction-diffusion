@@ -20,6 +20,8 @@ export class TimingHelper {
         this.#device = device;
         this.#passCount = passCount;
         this.#canTimestamp = device.features.has('timestamp-query');
+        if (!this.#canTimestamp) return;
+
         this.#querySet = device.createQuerySet({
             type: 'timestamp',
             count: this.#passCount * 2,

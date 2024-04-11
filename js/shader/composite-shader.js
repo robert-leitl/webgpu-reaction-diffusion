@@ -47,7 +47,7 @@ fn frag_main(@location(0) uv : vec2f) -> @location(0) vec4f {
     let value = smoothstep(0.2, .8, input.g);
     
     var base: vec3f = pal(value * .4 + 0.4, vec3(.5,0.5,0.5),vec3(0.5,0.5,.5),vec3(1.,1.0,1.0),vec3(0.05,0.1,0.2));
-    base *= 1.5 * (animationUniforms.pulse * .2 + .8);
+    base *= 2.5 * (animationUniforms.pulse * .2 + .8);
     
     let st = uv * 2. - 1.;
     let dist = length(st);
@@ -62,7 +62,7 @@ fn frag_main(@location(0) uv : vec2f) -> @location(0) vec4f {
     var emboss: vec3f = vec3f(2.0 * br - c - tl);
     let luminance: f32 = clamp(0.299 * emboss.r + 0.587 * emboss.g + 0.114 * emboss.b, 0.0, 1.0);
     emboss = vec3f(luminance) * .3 * (animationUniforms.pulse * .2 + .8);
-    let specular = smoothstep(0.2, 0.3, 2.0 * tl - c - br) * .5 * (1. - dist) * (animationUniforms.pulse * .2 + .8);
+    let specular = smoothstep(0.2, 0.3, 2.0 * tl - c - br) * .6 * (1. - dist) * (animationUniforms.pulse * .2 + .8);
     
     let embossScale2 = 2.;
     let tlColor2: vec4f = textureSample(inputTex, inputTexSampler, uv + vec2(-inputTexelSize.x,  inputTexelSize.y) * embossScale2);
