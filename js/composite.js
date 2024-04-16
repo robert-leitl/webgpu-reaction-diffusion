@@ -28,6 +28,7 @@ export class Composite {
         const descriptors = wgh.makeBindGroupLayoutDescriptors(defs, pipelineLayout);
         const bindGroupLayout = device.createBindGroupLayout(descriptors[0]);
 
+        // create the animation uniforms view and buffer
         const animationUniformView = wgh.makeStructuredView(defs.uniforms.animationUniforms);
         this.animationUniform = {
             view: animationUniformView,
@@ -36,14 +37,15 @@ export class Composite {
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
             })
         };
-        this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
 
+        // the sampler for the input texture
         this.sampler = device.createSampler({
             minFilter: 'linear',
             magFilter: 'linear'
         });
-        this.bindGroupLayouts = [bindGroupLayout];
 
+        // create the pipeline
+        this.bindGroupLayouts = [bindGroupLayout];
         this.pipeline = device.createRenderPipeline({
             label: 'composite pipeline',
             layout: device.createPipelineLayout({
@@ -52,6 +54,11 @@ export class Composite {
             ...pipelineLayout
         });
 
+        // initial resize
+        this.resize();
+    }
+
+    resize() {
         this.createBindGroups();
     }
 

@@ -34,3 +34,10 @@ html, body {
 	display: inline-block;
 	max-width: 32em;
 }
+
+@font-face {
+	font-family: "Syne Mono";
+	src:
+			url("/assets/font.ttf") format("truetype"),
+			url("/assets/font.woff") format("woff");
+}
