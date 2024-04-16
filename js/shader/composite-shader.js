@@ -76,6 +76,7 @@ fn frag_main(@location(0) uv : vec2f) -> @location(0) vec4f {
     var base: vec3f = pal(value * .4 + 0.4, vec3(.5,0.5,0.5), vec3(0.5,0.5,.5), vec3(1.,1.0,1.0), vec3(0.05,0.1,0.2));
     base *= 1.5 * ((1. - animationUniforms.pulse) * .15 + .85);
     
+    // get centered uv coords and distance to center
     let st = uv * 2. - 1.;
     let dist = length(st);
     
