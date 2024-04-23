@@ -27,6 +27,7 @@ export class ReactionDiffusionCompute {
             }
         };
         const descriptors = wgh.makeBindGroupLayoutDescriptors(defs, pipelineDescriptor);
+        // the storage texture descriptor has to be created manually
         descriptors[0].entries.push({
             binding: 1,
             storageTexture: { access: 'write-only', format: 'rgba16float' },

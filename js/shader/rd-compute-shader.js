@@ -9,15 +9,15 @@ const tileSize = [2, 2];
 
 // holds all the pixels needed for one workgroup
 const cacheSize = [
-    tileSize[0] * workgroupSize[0],
-    tileSize[1] * workgroupSize[1]
+    tileSize[0] * workgroupSize[0], // 16
+    tileSize[1] * workgroupSize[1]  // 16
 ];
 
 // the cache has to include the boundary pixels needed for a
 // valid evaluation of the kernel within the dispatch area
 const dispatchSize = [
-    cacheSize[0] - (kernelSize - 1),
-    cacheSize[1] - (kernelSize - 1),
+    cacheSize[0] - (kernelSize - 1), // 14
+    cacheSize[1] - (kernelSize - 1), // 14
 ];
 
 export const ReactionDiffusionShaderDispatchSize = dispatchSize;
@@ -188,6 +188,5 @@ fn compute_main(
     }
   }
 }
-
 `;
 
