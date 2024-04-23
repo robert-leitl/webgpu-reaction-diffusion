@@ -10,7 +10,7 @@ export class ReactionDiffusionCompute {
 
     pointer = {
         position: [0, 0],
-        followerPosition: [0, 0],
+        followerPosition: undefined,
         followerVelocity: [0, 0]
     };
 
@@ -67,9 +67,10 @@ export class ReactionDiffusionCompute {
             this.pointer.followerPosition = [...this.pointer.position];
         });
 
-        document.body.addEventListener('pointermove', e =>
-            this.pointer.position = this.getNormalizedPointerCoords(e.clientX, e.clientY)
-        );
+        document.body.addEventListener('pointermove', e => {
+            this.pointer.position = this.getNormalizedPointerCoords(e.clientX, e.clientY);
+            if (!this.pointer.followerPosition) this.pointer.followerPosition = [...this.pointer.position];
+        });
     }
 
     resize(width, height) {
@@ -210,7 +211,7 @@ export class ReactionDiffusionCompute {
         // update animation uniforms
         this.animationUniform.view.set({ pulse });
         this.animationUniform.view.set({ pointerVelocity: this.pointer.followerVelocity });
-        this.animationUniform.view.set({ pointerPos: this.pointer.followerPosition });
+        this.animationUniform.view.set({ pointerPos: this.pointer.followerPosition ? this.pointer.followerPosition : [0, 0] });
         this.device.queue.writeBuffer(this.animationUniform.buffer, 0, this.animationUniform.view.arrayBuffer);
 
         computePassEncoder.setPipeline(this.pipeline);
@@ -233,6 +234,8 @@ export class ReactionDiffusionCompute {
     }
 
     animatePointer() {
+        if (!this.pointer.followerPosition) return;
+
         const prevPointerFollower = [...this.pointer.followerPosition];
         this.pointer.followerPosition[0] += (this.pointer.position[0] - this.pointer.followerPosition[0]) / 18;
         this.pointer.followerPosition[1] += (this.pointer.position[1] - this.pointer.followerPosition[1]) / 18;

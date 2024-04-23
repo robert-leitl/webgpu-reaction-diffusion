@@ -47,12 +47,12 @@ struct AnimationUniforms {
 
 // based on: https://community.khronos.org/t/manual-bilinear-filter/58504
 fn texture2D_bilinear(t: texture_2d<f32>, coord: vec2f, dims: vec2u) -> vec4f {
-    let sample: vec2u = vec2u(coord);
+    let f: vec2f = fract(coord);
+    let sample: vec2u = vec2u(coord + (0.5 - f));
     let tl: vec4f = textureLoad(t, clamp(sample, vec2u(1, 1), dims), 0);
     let tr: vec4f = textureLoad(t, clamp(sample + vec2u(1, 0), vec2u(1, 1), dims), 0);
     let bl: vec4f = textureLoad(t, clamp(sample + vec2u(0, 1), vec2u(1, 1), dims), 0);
     let br: vec4f = textureLoad(t, clamp(sample + vec2u(1, 1), vec2u(1, 1), dims), 0);
-    let f: vec2f = fract(coord);
     let tA: vec4f = mix(tl, tr, f.x);
     let tB: vec4f = mix(bl, br, f.x);
     return mix(tA, tB, f.y);
