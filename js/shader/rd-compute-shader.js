@@ -83,7 +83,7 @@ fn compute_main(
   let dims: vec2u = vec2<u32>(textureDimensions(inputTex, 0));
   let aspectFactor: vec2f = vec2f(dims) / f32(max(dims.x, dims.y));
 
-  // add this threads tiles pixels to the cache
+  // add the pixels of this thread's tiles to the cache
   for (var c=0u; c<tileSize.x; c++) {
     for (var r=0u; r<tileSize.y; r++) {
       let local: vec2u = vec2u(c, r) + tileOffset;

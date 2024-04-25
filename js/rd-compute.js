@@ -4,10 +4,13 @@ import { ReactionDiffusionComputeShader, ReactionDiffusionShaderDispatchSize } f
 
 export class ReactionDiffusionCompute {
 
+    // these are the iterations of the simulation during one frame (the more iterations, the faster the simulation)
     ITERATIONS = 10;
 
+    // this is the scaling factor for the simulation textures (one quarter the size of the canvas)
     SCALE = .25;
 
+    // interaction data
     pointer = {
         position: [0, 0],
         followerPosition: undefined,
