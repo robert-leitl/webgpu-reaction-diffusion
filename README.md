@@ -1,17 +1,8 @@
-*How to use this template:*
+# WebGPU Reaction-Diffusion Compute Shader Demo
 
-- Styles for the demo go in css/base.css
-- Add build instructions and credits to the README.md
-- For writing the tutorial, take a look at https://github.com/crnacura/CodropsTemplate/wiki/Writing-the-article
-- Delete this 'how to' intro in the final version and leave the following (fill in title/description, credits and social links of your likings, we'll do the rest):
+Exemplary implementation of the reaction-diffusion algorithm using WebGPU compute shader.
 
--------
-
-# Title of the demo
-
-*A description of the demo goes here.*
-
-![Image Title](https://generative-placeholders.glitch.me/image?width=800&height=600")
+![WebGPU reaction-diffusion demo screenshot](https://github.com/robert-leitl/webgpu-reaction-diffusion/blob/main/cover.jpg?raw=true)
 
 [Article on Codrops](https://tympanus.net/codrops/?p=)
 
@@ -23,11 +14,12 @@ Run this demo on a [local server](https://developer.mozilla.org/en-US/docs/Learn
 
 ## Credits
 
-- Images generated with [Midjourney](https://midjourney.com)
+- [webgpu-utils](https://github.com/greggman/webgpu-utils) library by Gregg Tavares
+- [float16](https://github.com/petamoriken/float16) library by Kenta Moriuchi
 
 ## Misc
 
-Follow *Author*: [Twitter](), [Instagram](), [GitHub]() 
+Follow Robert Leitl: [Website](https://robert.leitl.dev/) [GitHub](https://github.com/robert-leitl) 
 
 Follow Codrops: [X](http://www.X.com/codrops), [Facebook](http://www.facebook.com/codrops), [GitHub](https://github.com/codrops), [Instagram](https://www.instagram.com/codropsss/)
 
