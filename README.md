@@ -19,7 +19,7 @@ Run this demo on a [local server](https://developer.mozilla.org/en-US/docs/Learn
 
 ## Misc
 
-Follow Robert Leitl: [Website](https://robert.leitl.dev/) [GitHub](https://github.com/robert-leitl) 
+Follow Robert Leitl: [Website](https://robert.leitl.dev/), [GitHub](https://github.com/robert-leitl) 
 
 Follow Codrops: [X](http://www.X.com/codrops), [Facebook](http://www.facebook.com/codrops), [GitHub](https://github.com/codrops), [Instagram](https://www.instagram.com/codropsss/)
 
