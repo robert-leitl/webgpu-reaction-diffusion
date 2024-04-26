@@ -84,7 +84,7 @@ export class ReactionDiffusionCompute {
         this.inputCanvas = document.createElement('canvas');
         this.inputCanvas.width = this.width;
         this.inputCanvas.height = this.height;
-        this.fontSize = Math.max(80, Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3);
+        this.fontSize = Math.max(90, Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3.75);
         this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
         this.inputContext.font = `${this.fontSize}px "Syne Mono"`;
         this.letterWidth = this.inputContext.measureText('0').width;
@@ -161,7 +161,7 @@ export class ReactionDiffusionCompute {
         ctx.fillStyle = '#f00';
         const now = new Date();
 
-        if (this.aspect > 1.6) {
+        if (this.aspect > 1.4) {
             ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`,
                 - this.letterWidth * 4,
                 + this.letterHeight * .5);

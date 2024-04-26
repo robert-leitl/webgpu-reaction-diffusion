@@ -159,7 +159,7 @@ fn compute_main(
         pointerMask = pointerMask * length(animationUniforms.pointerVelocity) * 30.;
         
         // the dA and dB values are also influenced by the horizontal or vertical distance from the center
-        let dist = mix(dot(uv.xx, uv.xx), dot(uv.yy, uv.yy), step(1.6, f32(dims.x) / f32(dims.y)));
+        let dist = mix(dot(uv.xx, uv.xx), dot(uv.yy, uv.yy), step(1.4, f32(dims.x) / f32(dims.y)));
 
         // reaction diffusion parameters
         let cacheValue: vec4f = cache[local.y][local.x];
