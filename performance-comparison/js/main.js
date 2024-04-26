@@ -1,8 +1,8 @@
-import {ReactionDiffusionCompute} from '/performance-comparison/js/rd-compute.js';
-import {ReactionDiffusionFragment} from '/performance-comparison/js/rd-fragment.js';
-import {Composite} from '/performance-comparison/js/composite.js';
-import {TimingHelper} from '/performance-comparison/js/utils/timing-helper.js';
-import {RollingAverage} from '/performance-comparison/js/utils/rolling-average.js';
+import {ReactionDiffusionCompute} from './rd-compute.js';
+import {ReactionDiffusionFragment} from './rd-fragment.js';
+import {Composite} from './composite.js';
+import {TimingHelper} from './utils/timing-helper.js';
+import {RollingAverage} from './utils/rolling-average.js';
 
 const canvas = document.getElementById('viewport');
 const adapter = await navigator.gpu?.requestAdapter();
@@ -20,7 +20,7 @@ const viewportSize = [
 canvas.width = viewportSize[0];
 canvas.height = viewportSize[1];
 
-const useCompute = true;
+const useCompute = false;
 
 const timingHelper = useCompute ? new TimingHelper(device) : new TimingHelper(device, ReactionDiffusionFragment.ITERATIONS * 2);
 const rdTime = new RollingAverage(500);
@@ -29,8 +29,7 @@ timeDisplay.style.position = 'absolute';
 timeDisplay.style.top = '0';
 timeDisplay.style.left = '0';
 timeDisplay.style.fontSize = '1.4em';
-timeDisplay.style.mixBlendMode = 'difference';
-timeDisplay.style.color = 'white';
+timeDisplay.style.color = '#fff';
 document.body.appendChild(timeDisplay);
 
 const reactionDiffusion = useCompute ? new ReactionDiffusionCompute(device, viewportSize) : new ReactionDiffusionFragment(device, viewportSize);
@@ -62,7 +61,7 @@ const run = t => {
     device.queue.submit([commandEncoder.finish()]);
 
     timingHelper.getResult().then(gpuTime => rdTime.addSample(gpuTime / 1000));
-    timeDisplay.innerText = `GPU time: ${Math.round(rdTime.value)} µs`;
+    timeDisplay.innerText = `GPU time ${useCompute ? 'compute shader' : 'fragment shader'}: ${Math.round(rdTime.value)} µs`;
 
     requestAnimationFrame(t => run(t));
 }

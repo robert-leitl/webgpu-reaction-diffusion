@@ -161,7 +161,7 @@ export class ReactionDiffusionCompute {
         ctx.fillStyle = '#f00';
         const now = new Date();
 
-        if (this.aspect > 1.3) {
+        if (this.aspect > 1.6) {
             ctx.fillText(`${now.getHours().toString(10).padStart(2, '0')}:${now.getMinutes().toString(10).padStart(2, '0')}:${now.getSeconds().toString(10).padStart(2, '0')}`,
                 - this.letterWidth * 4,
                 + this.letterHeight * .5);

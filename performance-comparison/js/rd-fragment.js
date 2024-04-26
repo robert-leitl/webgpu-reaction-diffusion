@@ -1,6 +1,6 @@
-import * as wgh from '/performance-comparison/js/libs/webgpu-utils.module.js';
-import { Float16Array } from '/performance-comparison/js/libs/float16.js';
-import { ReactionDiffusionFragmentShader } from '/performance-comparison/js/shader/rd-fragment-shader.js';
+import * as wgh from './libs/webgpu-utils.module.js';
+import { Float16Array } from './libs/float16.js';
+import { ReactionDiffusionFragmentShader } from './shader/rd-fragment-shader.js';
 
 export class ReactionDiffusionFragment {
 
