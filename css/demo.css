@@ -1,9 +1,3 @@
-:root {
-	--color-text: #f6f6f6;
-	--color-bg: #222;
-	--color-link-hover: #fff;
-}
-
 #viewport {
 	position: fixed;
 	top: 0;
