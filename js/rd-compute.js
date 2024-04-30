@@ -84,7 +84,7 @@ export class ReactionDiffusionCompute {
         this.inputCanvas = document.createElement('canvas');
         this.inputCanvas.width = this.width;
         this.inputCanvas.height = this.height;
-        this.fontSize = Math.max(90, Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3.75);
+        this.fontSize = Math.max(this.aspect > 1 ? 70 : 80, Math.min(this.inputCanvas.width, this.inputCanvas.height) / 3.75);
         this.inputContext = this.inputCanvas.getContext("2d", { willReadFrequently: true });
         this.inputContext.font = `${this.fontSize}px "Syne Mono"`;
         this.letterWidth = this.inputContext.measureText('0').width;
