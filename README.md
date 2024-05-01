@@ -4,9 +4,9 @@ Exemplary implementation of the reaction-diffusion algorithm using WebGPU comput
 
 ![WebGPU reaction-diffusion demo screenshot](https://github.com/robert-leitl/webgpu-reaction-diffusion/blob/main/cover.jpg?raw=true)
 
-[Article on Codrops](https://tympanus.net/codrops/?p=)
+[Article on Codrops](https://tympanus.net/codrops/2024/05/01/reaction-diffusion-compute-shader-in-webgpu/)
 
-[Demo](http://tympanus.net/Development/.../)
+[Demo](https://tympanus.net/Tutorials/WebGPUReactionDiffusion/)
 
 ## Installation
 
